@@ -1,22 +1,9 @@
 # Dog MicroService
 
 This is a sample of a Java Spring app that works with Tilt and the Tanzu Application Platform.
-It provides the framework to enhance the MicroPet Application
+It provides the framework to enhance the MicroPet Application with a new kind of service `Dog`
 
-## Dependencies
-1. [kubectl CLI](https://kubernetes.io/docs/tasks/tools/)
-1. [Tilt version >= v0.23.2](https://docs.tilt.dev/install.html)
-1. Tanzu CLI and the apps plugin v0.2.0 which are provided as part of [Tanzu Application Platform](https://network.tanzu.vmware.com/products/tanzu-application-platform)
-1. A cluster with Tanzu Application Platform, and the ["Micropets Supply Chain"](https://github.com/bmoussaud/micropets-app-operator), plus its dependencies. This supply chains concept is part of [Tanzu Application Platform](https://network.tanzu.vmware.com/products/tanzu-application-platform).
-
-## Deploy the accelerarator
-
-```
-tanzu acc create micropets-java-service-accelerator --git-repo https://github.com/bmoussaud/micropet-java-service-accelerator --git-branch main --interval 5s
-```
-
-## Running the sample
-
+## Running the serice
 
 Start the app deployment by running:
 
@@ -49,38 +36,77 @@ kubectl delete -f config/app-operator
 kubectl delete workloads.carto.run dogs
 ````
 
+### With Tanzu CLI 
 
+```
+➜ tanzu service class list                                                                                                                                              
+  NAME                  DESCRIPTION
+  kafka-unmanaged       Kafka by Bitnami
+  mongodb-unmanaged     MongoDB by Bitnami
+  mysql-unmanaged       MySQL by Bitnami
+  postgresql-unmanaged  PostgreSQL by Bitnami
+  rabbitmq-unmanaged    RabbitMQ by Bitnami
+  redis-unmanaged       Redis by Bitnami
+```
+
+```
+tanzu service class-claim create dogs-pgsql --class postgresql-unmanaged --parameter storageGB=1
+```
+
+```
+❯ tanzu service class-claim list                                                                                                                                         
+  NAME        CLASS                 READY  REASON
+  dogs-pgsql  postgresql-unmanaged  True   Ready
+```
 ### With the Database
 
 ```
-kubectl exec -ti pod/dogs-database-0 -- pg_autoctl show state
+❯ kubectl exec -ti pod/micropets-dev-database-0 -- pg_autoctl show state                                                                                                 
+Defaulted container "pg-container" out of: pg-container, instance-logging, reconfigure-instance, postgres-metrics-exporter, postgres-sidecar
+  Name |  Node |                                                                                  Host:Port |       TLI: LSN |   Connection |      Reported State |      Assigned State
+-------+-------+--------------------------------------------------------------------------------------------+----------------+--------------+---------------------+--------------------
+node_1 |     1 | micropets-dev-database-0.micropets-dev-database-agent.micropets-dev.svc.cluster.local:5432 |   1: 0/2FAF1F8 |   read-write |              single |              single
+
 ```
 ```
-kubectl exec -it dogs-database-0 -- bash -c "psql"
-postgres-# \l
-                                                          List of databases
-      Name       |           Owner           | Encoding | Collate |  Ctype  |                    Access privileges
------------------+---------------------------+----------+---------+---------+---------------------------------------------------------
- postgres        | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 | postgres=CTc/postgres                                  +
-                 |                           |          |         |         | pgautofailover_monitor=c/postgres                      +
-                 |                           |          |         |         | postgres_exporter=c/postgres
- dogs-database | pgautofailover_replicator | UTF8     | C.UTF-8 | C.UTF-8 | pgautofailover_replicator=CTc/pgautofailover_replicator+
-                 |                           |          |         |         | admin=CTc/pgautofailover_replicator
- template0       | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 | =c/postgres                                            +
-                 |                           |          |         |         | postgres=CTc/postgres
- template1       | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 | =c/postgres                                            +
-                 |                           |          |         |         | postgres=CTc/postgres
-(4 rows)
-postgres-# \c dogs-database
-You are now connected to database "dogs-database" as user "postgres".
-dogs-database=#
-dogs-database=# \dt
-       List of relations
- Schema | Name  | Type  | Owner
---------+-------+-------+-------
- public | Dog | table | admin
-(1 row)
-dogs-database=# select * from Dog;
+kubectl exec -ti pod/micropets-dev-database-0 -- bash -c "psql"
+➜ kubectl exec -ti pod/micropets-dev-database-0 -- bash -c "psql"                                                                                                       
+Defaulted container "pg-container" out of: pg-container, instance-logging, reconfigure-instance, postgres-metrics-exporter, postgres-sidecar
+psql (15.1 (VMware Postgres 15.1.0))
+Type "help" for help.
+
+postgres=# \l
+                                                                             List of databases
+          Name          |           Owner           | Encoding | Collate |  Ctype  | ICU Locale | Locale Provider |                    Access privileges
+------------------------+---------------------------+----------+---------+---------+------------+-----------------+---------------------------------------------------------
+ micropets-dev-database | pgautofailover_replicator | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | pgautofailover_replicator=CTc/pgautofailover_replicator+
+                        |                           |          |         |         |            |                 | postgres_exporter=c/pgautofailover_replicator          +
+                        |                           |          |         |         |            |                 | admin=CTc/pgautofailover_replicator                    +
+                        |                           |          |         |         |            |                 | pgrouser=c/pgautofailover_replicator                   +
+                        |                           |          |         |         |            |                 | pgrwuser=c/pgautofailover_replicator
+ postgres               | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | postgres=CTc/postgres                                  +
+                        |                           |          |         |         |            |                 | pgautofailover_monitor=c/postgres                      +
+                        |                           |          |         |         |            |                 | postgres_exporter=c/postgres
+ template0              | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | =c/postgres                                            +
+                        |                           |          |         |         |            |                 | postgres=CTc/postgres
+ template1              | postgres                  | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | =c/postgres                                            +
+                        |                           |          |         |         |            |                 | postgres=CTc/postgres
+postgres=# \c micropets-dev-databas
+connection to server on socket "/tmp/.s.PGSQL.5432" failed: FATAL:  database "micropets-dev-databas" does not exist
+Previous connection kept
+postgres=# \c micropets-dev-database
+You are now connected to database "micropets-dev-database" as user "postgres".
+micropets-dev-database=# \dt
+             List of relations
+ Schema |       Name       | Type  | Owner
+--------+------------------+-------+-------
+ public | bird             | table | admin
+ public | dog_bean         | table | admin
+ public | dog_bean_table   | table | admin
+ public | dogs             | table | admin
+ public | snake_bean       | table | admin
+ public | snake_bean_table | table | admin
+(6 rows)
 ```
 
 
