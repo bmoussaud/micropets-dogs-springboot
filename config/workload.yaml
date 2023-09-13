@@ -1,0 +1,52 @@
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: dogs-springboot
+  labels:
+    apps.tanzu.vmware.com/workload-type: web
+    app.kubernetes.io/name: dogs
+    app.kubernetes.io/part-of: micropets
+    micropets/kind: backend
+    apps.tanzu.vmware.com/has-tests: "true"
+  annotations:
+    autoscaling.knative.dev/minScale: "1"
+    autoscaling.knative.dev/max-scale: "2"
+spec:
+  build:
+    env:
+      - name: BP_JVM_VERSION
+        value: "17"
+  #serviceAccountName: tap-default
+  source:
+    git:
+      url: https://github.com/bmoussaud/my-dogs-svc
+      ref:
+        branch: main
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: postgres
+    - name: SPRING_CONFIG_IMPORT
+      value: optional:configtree:${SERVICE_BINDING_ROOT}/dogs-config/
+  serviceClaims:
+    - name: dogs-database
+      ref:
+        apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+    #    kind: ResourceClaim
+    #    name: micropets-dev-tanzu-postgresql-database
+        kind: ClassClaim
+        name: dogs-pgsql
+    - name: dogs-config
+      ref:
+        apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+        kind: ResourceClaim
+        name: dogs-config
+  params:
+    - name: testing_pipeline_matching_labels
+      value:
+        apps.tanzu.vmware.com/pipeline: skip-test
+    - name: scanning_source_policy
+      value: scan-policy-java
+    - name: scanning_image_policy
+      value: scan-policy-java
+    - name: gitops_commit_message
+      value: dogs dev supplychain@cluster.local

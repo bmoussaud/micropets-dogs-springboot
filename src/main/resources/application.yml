@@ -1,0 +1,46 @@
+micropets:
+  from: Paris (Local)
+
+spring:
+  application:
+    name: dogs
+  jpa:
+    generate-ddl: true
+  sql:
+    init:
+      mode: always
+
+management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+      service: ${spring.application.name}
+      source: ${spring.application.name}-${random.uuid}
+  tracing:
+    # Set to true to forward tracing spans to a local Zipkin instance.
+    enabled: false
+    sampling:
+      probability: 0.1
+  otlp:
+    metrics:
+      export:
+        # Set to true to forward metrics to a local OpenTelemetry collector.
+        enabled: false
+        step: 30s
+logging:
+  pattern:
+    # Include tracing ids in log entries.
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    com.renamethis: DEBUG
+    org.moussaud: DEBUG
+    io.micrometer.core: DEBUG
+    org.springframework.web: ERROR
+    org.hibernate: ERROR
+    org.springframework.cloud.bindings: debug
+    org.springframework.jdbc.core.JdbcTemplate: debug
+    org.springframework.jdbc.datasource.init.ScriptUtils: debug
+    org.moussaud.micropets.pets: debug

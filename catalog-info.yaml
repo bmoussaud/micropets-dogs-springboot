@@ -1,0 +1,39 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dogs
+  description: Micropet Micro Service App
+  tags:    
+    - java
+    - spring
+    - web
+    - micropets
+  annotations:
+    "backstage.io/kubernetes-label-selector": "app.kubernetes.io/name=dogs"
+  links:
+    - url: https://en.wikipedia.org/wiki/dogs
+      title: "dogs (wikipedia) "
+      icon: locallibrary
+    - url: https://github.com/bmoussaud/my-dogs-svc
+      title: "Source Repository"
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: experimental
+  owner: the-pet-team
+  system: micropets
+  dependsOn: [Resource:dogs-db]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: dogs-db
+  description: Stores dogs
+  annotations:
+    "backstage.io/techdocs-ref": dir:.
+  tags:
+    - postgresql
+spec:
+  type: database
+  owner: the-pet-team
+  system: micropets

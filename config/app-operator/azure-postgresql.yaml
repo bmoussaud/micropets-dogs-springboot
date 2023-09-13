@@ -1,0 +1,215 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database-instances
+---
+apiVersion: resources.azure.com/v1beta20200601
+kind: ResourceGroup
+metadata:
+  name: database-instances
+  namespace: database-instances
+spec:
+  location: francecentral
+---
+apiVersion: secretgen.k14s.io/v1alpha1
+kind: Password
+metadata:
+  name: dogs-psql-secret
+  namespace: database-instances
+spec:
+  length: 24
+  secretTemplate:
+    type: Opaque
+    stringData:
+      password: 123%ABC#$(value)
+---
+apiVersion: dbforpostgresql.azure.com/v1beta20210601
+kind: FlexibleServersDatabase
+metadata:
+  name: dogs-psql
+  namespace: database-instances
+spec:
+  azureName: dogs-psql-demo
+  owner:
+    name: dogs-psql-srv
+  charset: utf8
+---
+apiVersion: dbforpostgresql.azure.com/v1beta20210601
+kind: FlexibleServersFirewallRule
+metadata:
+  name: dogs-psql-fw
+  namespace: database-instances
+spec:
+  owner:
+    name: dogs-psql-srv
+  startIpAddress: 0.0.0.0
+  endIpAddress: 255.255.255.255
+---
+apiVersion: dbforpostgresql.azure.com/v1beta20210601
+kind: FlexibleServer
+metadata:
+  name: dogs-psql-srv
+  namespace: database-instances
+spec:
+  location: francecentral
+  azureName: dogs-demo
+  owner:
+    name: database-instances
+  version: "14"
+  sku:
+    name: Standard_B1ms
+    tier: Burstable
+  administratorLogin: myAdmin
+  administratorLoginPassword:
+    name: dogs-psql-secret
+    key: password
+  storage:
+    storageSizeGB: 32
+  backup:
+    backupRetentionDays: 7
+    geoRedundantBackup: Disabled
+---
+apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+kind: ClusterInstanceClass
+metadata:
+  name: azure-postgres
+spec:
+  description:
+    short: Azure Flexible Server instances with a postgresql engine
+  pool:
+    kind: Secret
+    labelSelector:
+      matchLabels:
+        services.apps.tanzu.vmware.com/class: azure-postgres
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: servicebinding-controller-secret-reader
+  labels:
+    servicebinding.io/controller: "true"
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+kind: ResourceClaimPolicy
+metadata:
+  name: developer-in-micropets-dev-can-claim-azure-postgres
+  namespace: database-instances
+spec:
+  subject:
+    kind: Secret
+    group: ""
+    selector:
+      matchLabels:
+        services.apps.tanzu.vmware.com/class: azure-postgres
+  consumingNamespaces:
+  - micropets-dev
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dogs-psql-reader
+  namespace: database-instances
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dogs-psql-reading
+  namespace: database-instances
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  resourceNames:
+  - dogs-psql-secret
+- apiGroups:
+  - dbforpostgresql.azure.com
+  resources:
+  - flexibleservers
+  - flexibleserversdatabases
+  verbs:
+  - get
+  - list
+  - watch
+  - fetch
+  resourceNames:
+  - dogs-psql
+  - dogs-psql-srv
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dogs-psql-reader-to-read
+  namespace: database-instances
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dogs-psql-reading
+subjects:
+- kind: ServiceAccount
+  name: dogs-psql-reader
+  namespace: database-instances
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretTemplate
+metadata:
+  name: dogs-psql-bindable
+  namespace: database-instances
+spec:
+  serviceAccountName: dogs-psql-reader
+  inputResources:
+  - name: server
+    ref:
+      apiVersion: dbforpostgresql.azure.com/v1alpha1api20210601
+      kind: FlexibleServer
+      name: dogs-psql-srv
+  - name: db
+    ref:
+      apiVersion: dbforpostgresql.azure.com/v1alpha1api20210601
+      kind: FlexibleServersDatabase
+      name: dogs-psql
+  - name: creds
+    ref:
+      apiVersion: v1
+      kind: Secret
+      name: $(.server.spec.administratorLoginPassword.name)
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: dogs-psql
+        app.kubernetes.io/instance: $(.server.metadata.name)
+        services.apps.tanzu.vmware.com/class: azure-postgres
+    type: postgresql
+    stringData:
+      type: postgresql
+      port: "5432"
+      database: $(.db.status.name)
+      host: $(.server.status.fullyQualifiedDomainName)
+      username: $(.server.status.administratorLogin)
+    data:
+      password: $(.creds.data.password)
+---
+apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+kind: ResourceClaim
+metadata:
+  name: dogs-azure-postgresql-database
+  namespace: micropets-dev
+spec:
+  ref:
+    apiVersion: v1
+    kind: Secret
+    name: dogs-psql-bindable
+    namespace: database-instances

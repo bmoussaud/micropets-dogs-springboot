@@ -1,0 +1,17 @@
+micropets:
+  from: Paris (PSQL)
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petclinic
+    username: ${PGSQL_USER:petclinic}
+    password: ${PGSQL_PASSWORD:petclinic}
+    driverClassName: org.postgresql.Driver    
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      platform: postgres
+      mode: always     
+      continue-on-error: true 
+
