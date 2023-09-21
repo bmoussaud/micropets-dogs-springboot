@@ -5,8 +5,8 @@ metadata:
   description: Micropet Micro Service App
   tags:    
     - java
-    - spring
-    - web
+    - springboot
+    - service
     - micropets
   annotations:
     "backstage.io/kubernetes-label-selector": "app.kubernetes.io/name=dogs"
@@ -14,7 +14,7 @@ metadata:
     - url: https://en.wikipedia.org/wiki/dogs
       title: "dogs (wikipedia) "
       icon: locallibrary
-    - url: https://github.com/bmoussaud/my-dogs-svc
+    - url: https://github.com/bmoussaud/micropets-dogs-springboot
       title: "Source Repository"
       icon: dashboard
 spec:
