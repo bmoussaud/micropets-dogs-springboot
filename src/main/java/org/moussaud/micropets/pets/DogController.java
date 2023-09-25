@@ -31,13 +31,13 @@ public class DogController {
 	@GetMapping(value = "/liveness")
 	public String liveness() {
 		logger.debug("liveness");
-		return "DogServiceLiveness";
+		return "ok";
 	}
 
 	@GetMapping(value = "/readiness")
 	public String readiness() {
 		logger.debug("readiness");
-		return "DogServiceReadiness";
+		return "ok";
 	}
 
 	@GetMapping(value = { "", "/", "/dogs/v1/data" }, produces = MediaType.APPLICATION_JSON_VALUE)
