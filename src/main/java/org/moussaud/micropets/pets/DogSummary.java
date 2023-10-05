@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Service
 public class DogSummary {
-    
+
     static private String CONTEXT = "dogs";
 
     @JsonProperty(value = "Total")
@@ -44,7 +44,7 @@ public class DogSummary {
 
     private String getHostname() {
         try {
-            return InetAddress.getLocalHost().toString();
+            return InetAddress.getLocalHost().getHostName().toString();
         } catch (UnknownHostException e) {
             return "Unknown";
         }
@@ -81,10 +81,10 @@ public class DogSummary {
         this.hostname = getHostname();
         petKind.setHostname(hostname);
         petKind.setFromValue(from);
-        return petKind;        
+        return petKind;
     }
 
-    public void addPet(DogBean petKind) {        
+    public void addPet(DogBean petKind) {
         pets.add(upgrade(petKind));
         total = total + 1;
     }

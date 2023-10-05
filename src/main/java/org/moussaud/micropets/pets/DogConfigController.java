@@ -30,8 +30,8 @@ public class DogConfigController {
 
 		logger.debug("configuration the Dog database");
 		return Map.of(
-				"datasource.url", dataSource.getJdbcUrl(),
-				"datasource.driver", dataSource.getDriverClassName(),
+				"url", dataSource.getJdbcUrl(),
+				"driver", dataSource.getDriverClassName(),
 				"kind", "dogs",
 				"hostname", getHostname());
 
@@ -39,7 +39,7 @@ public class DogConfigController {
 
 	private String getHostname() {
 		try {
-			return InetAddress.getLocalHost().toString();
+			return InetAddress.getLocalHost().getHostName();
 		} catch (UnknownHostException e) {
 			return "Unknown";
 		}
