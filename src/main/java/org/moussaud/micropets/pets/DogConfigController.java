@@ -7,6 +7,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -30,8 +32,17 @@ public class DogConfigController {
 		return Map.of(
 				"datasource.url", dataSource.getJdbcUrl(),
 				"datasource.driver", dataSource.getDriverClassName(),
-				"kind", "dogs");
+				"kind", "dogs",
+				"hostname", getHostname());
 
+	}
+
+	private String getHostname() {
+		try {
+			return InetAddress.getLocalHost().toString();
+		} catch (UnknownHostException e) {
+			return "Unknown";
+		}
 	}
 
 }
