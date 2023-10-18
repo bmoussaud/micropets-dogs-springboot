@@ -37,7 +37,7 @@ public class DogController {
 	@GetMapping(value = "/readiness")
 	public String readiness() {
 		logger.debug("readiness");
-		return "ok";
+		return "okay";
 	}
 
 	@GetMapping(value = { "", "/", "/dogs/v1/data" }, produces = MediaType.APPLICATION_JSON_VALUE)
