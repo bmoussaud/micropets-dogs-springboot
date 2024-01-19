@@ -2,20 +2,18 @@ apiVersion: carto.run/v1alpha1
 kind: Workload
 metadata:
   name: dogs-springboot
+  namespace: micropets-int
   labels:
     apps.tanzu.vmware.com/workload-type: web
     app.kubernetes.io/name: dogs
     app.kubernetes.io/part-of: micropets
     micropets/kind: backend
-    apps.tanzu.vmware.com/has-tests: "true"
-  annotations:
-    autoscaling.knative.dev/minScale: "1"
-    autoscaling.knative.dev/max-scale: "2"
+    apps.tanzu.vmware.com/has-tests: "true"  
 spec:
   build:
     env:
       - name: BP_JVM_VERSION
-        value: "17"  
+        value: "17"
   source:
     git:
       url: https://github.com/bmoussaud/my-dogs-svc
@@ -31,7 +29,7 @@ spec:
       ref:
         apiVersion: services.apps.tanzu.vmware.com/v1alpha1
         kind: ResourceClaim
-        name: micropets-dev-tanzu-postgresql-database
+        name: micropets-int-tanzu-postgresql-database
     #    kind: ClassClaim
     #    name: dogs-pgsql
     - name: dogs-config
@@ -48,4 +46,4 @@ spec:
     - name: scanning_image_policy
       value: scan-policy-java
     - name: gitops_commit_message
-      value: dogs dev supplychain@cluster.local
+      value: dogs int supplychain@cluster.local
