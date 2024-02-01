@@ -23,6 +23,8 @@ spec:
   owner: the-pet-team
   system: micropets
   dependsOn: [Resource:dogs-db]
+  providesApis:
+    - internal/petclinic-api-dev
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Resource

@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/part-of: micropets
     micropets/kind: backend
     apps.tanzu.vmware.com/has-tests: "true"
+    apis.apps.tanzu.vmware.com/register-api: "true"
   annotations:
     autoscaling.knative.dev/minScale: "1"
     autoscaling.knative.dev/max-scale: "2"
@@ -15,7 +16,7 @@ spec:
   build:
     env:
       - name: BP_JVM_VERSION
-        value: "17"  
+        value: "17"
   source:
     git:
       url: https://github.com/bmoussaud/micropets-dogs-springboot
@@ -49,3 +50,11 @@ spec:
       value: scan-policy-java
     - name: gitops_commit_message
       value: dogs dev supplychain@cluster.local
+    - name: api_descriptor
+      value:
+        type: openapi
+        location:
+          path: "/v3/api-docs"
+        system: default/micropets
+        owner: default/the-pet-team
+        description: "A set of Dogs API endpoints."
