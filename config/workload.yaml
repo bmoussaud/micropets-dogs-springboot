@@ -18,7 +18,7 @@ spec:
         value: "17"  
   source:
     git:
-      url: https://github.com/bmoussaud/my-dogs-svc
+      url: https://github.com/bmoussaud/micropets-dogs-springboot
       ref:
         branch: main
   env:
