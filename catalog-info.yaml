@@ -24,7 +24,7 @@ spec:
   system: micropets
   dependsOn: [Resource:dogs-db]
   providesApis:    
-    - micropets-dev/api/dogs-springboot-48b1b5f5
+    - micropets-dev/dogs-springboot-48b1b5f5
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Resource
