@@ -31,7 +31,7 @@ public class DogController {
 	@GetMapping(value = "/liveness")
 	public String liveness() {
 		logger.debug("liveness");
-		return "ok";
+		return "okay";
 	}
 
 	@GetMapping(value = "/readiness")
