@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -74,12 +75,12 @@ public class DogController {
 	public DogBean Dog(@PathVariable Long index) {
 		logger.debug("get Dog by Index " + index);
 		summary.clear();
-		return summary.upgrade(repository.findById(index).get());
+		DogBean dog = repository.findById(index).orElse(new DogBean());
+		return summary.upgrade(dog);
 	}
 
 	@GetMapping(value = "/dogs/v1/load", produces = MediaType.APPLICATION_JSON_VALUE)
 	public DogSummary load() {
-
 		logger.debug("load values in the Dog database");
 		DogSummary summary = generator.generate();
 		logger.debug("Save All : Insert in db:" + summary.pets);
